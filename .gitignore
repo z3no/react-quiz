@@ -25,3 +25,6 @@ yarn-error.log*
 .idea
 
 README.old.md
+
+package.json
+package-lock.json
