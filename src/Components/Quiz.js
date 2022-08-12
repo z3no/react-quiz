@@ -1,3 +1,4 @@
+import './Quiz.css';
 import React, {useCallback, useEffect, useState} from "react";
 
 function Quiz() {
@@ -18,8 +19,9 @@ function Quiz() {
     //Score variable will store the user's score. The lastAnswer variable is going to sore the color we want to display the score in
     //by default it will be black, green if the last answer was correct and red if it was incorrect.
     const [score, setScore] =  useState(0)
-    const [lastAnswer, setLastAnswer] = useState('black')
+    const [lastAnswer, setLastAnswer] = useState('last-answer')
 
+    const classes = `score ${lastAnswer}`
     //Our async function is going to get our questions from the API
     //Because we are fetching our data outside useEffect we have to wrap the function with a 'useCallback'.
     //Since the function is declared outside of 'useEffect', we will have to put it in the dependency array of the hook.
@@ -71,11 +73,11 @@ function Quiz() {
     return (
         <div>
             {loaded &&
-                <div>
-                    <p className="score" style={{color: lastAnswer}}>Score: {score}</p>
+                <div className="quiz">
+                    <p className={classes}>Score: {score}</p>
                     <p className="question">{questions[questionIndex].question}</p>
                     {questions[questionIndex].incorrect_answers.map( (answer) => {
-                        return <button key={answer} onClick={(event) => handleParsed(event, answer)}>{answer}</button>
+                        return <button className="question-button" key={answer} onClick={(event) => handleParsed(event, answer)}>{answer}</button>
                     })}
                 </div>
             }
