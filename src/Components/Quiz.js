@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 
 function Quiz() {
 
@@ -16,26 +16,28 @@ function Quiz() {
     const [questionIndex, setQuestionIndex] = useState(0)
 
     //Our async function is going to get our questions from the API
-    const fetchQuestions = async () => {
-        try{
-            let response = await fetch(apiUrl);
-            let questions = await response.json();
-            insertCorrectAnswer(questions.results[0].incorrect_answers, questions.results[0].correct_answer)
-            setQuestions(questions.results);
-            setLoaded(true);
-            console.log(questions);
-        } catch (error) {
-            console.log(error)
-        }
-    }
+    //Because we are fetching our data outside useEffect we have to wrap the function with a 'useCallback'.
+    //Since the function is declared outside of 'useEffect', we will have to put it in the dependency array of the hook.
+    //But if the function isn't wrapped in 'useCallback', it will update on every re-render, and thus trigger the 'useEffect' on every re-render.
+    const fetchQuestions = useCallback(async () => {
+        //get the questions from our api
+        let response = await fetch(apiUrl);
+        //convert question data to json
+        let questions = await response.json();
+        //set state with the result
+        setQuestions(questions.results);
+        setLoaded(true);
+        insertCorrectAnswer(questions.results[0].incorrect_answers, questions.results[0].correct_answer)
+        console.log(questions);
+    },[])
 
-    function insertCorrectAnswer(arr, corr){
+    function insertCorrectAnswer(array, correct){
         const randomIndex = Math.floor(Math.random()*4)
-        arr.splice(randomIndex, 0, corr)
+        array.splice(randomIndex, 0, correct)
     }
 
-    const handleParsed = (e, ans) => {
-        e.preventDefault()
+    const handleParsed = (event, answer) => {
+        event.preventDefault()
         if(questionIndex + 1 < questions.length){
             insertCorrectAnswer(questions[questionIndex + 1].incorrect_answers, questions[questionIndex + 1].correct_answer)
             setQuestionIndex(questionIndex + 1)
@@ -47,16 +49,17 @@ function Quiz() {
 
     //useEffect hook
     useEffect(() => {
-        fetchQuestions();
-    }, []);
+        //call the function and make sure to catch any error
+        fetchQuestions().catch(console.error);
+    }, [fetchQuestions]);
 
     return (
         <div>
             {loaded &&
                 <div>
                     <p className="question">{questions[questionIndex].question}</p>
-                    {questions[questionIndex].incorrect_answers.map( (a) => {
-                        return <button key={a} onClick={(e) => handleParsed(e, a)}>{a}</button>
+                    {questions[questionIndex].incorrect_answers.map( (answer) => {
+                        return <button key={answer} onClick={(event) => handleParsed(event, answer)}>{answer}</button>
                     })}
                 </div>
             }
