@@ -15,6 +15,11 @@ function Quiz() {
     //QuestionIndex is going to track the current question we are on in our array
     const [questionIndex, setQuestionIndex] = useState(0)
 
+    //Score variable will store the user's score. The lastAnswer variable is going to sore the color we want to display the score in
+    //by default it will be black, green if the last answer was correct and red if it was incorrect.
+    const [score, setScore] =  useState(0)
+    const [lastAnswer, setLastAnswer] = useState('black')
+
     //Our async function is going to get our questions from the API
     //Because we are fetching our data outside useEffect we have to wrap the function with a 'useCallback'.
     //Since the function is declared outside of 'useEffect', we will have to put it in the dependency array of the hook.
@@ -28,16 +33,26 @@ function Quiz() {
         setQuestions(questions.results);
         setLoaded(true);
         insertCorrectAnswer(questions.results[0].incorrect_answers, questions.results[0].correct_answer)
-        console.log(questions);
+        console.log(questions.results);
     },[])
 
     function insertCorrectAnswer(array, correct){
         const randomIndex = Math.floor(Math.random()*4)
         array.splice(randomIndex, 0, correct)
+        console.log(array)
     }
 
     const handleParsed = (event, answer) => {
         event.preventDefault()
+
+        if(answer === questions[questionIndex].correct_answer) {
+            setScore(score + 10)
+            setLastAnswer('green')
+        } else {
+            setScore(score - 10)
+            setLastAnswer('red')
+        }
+
         if(questionIndex + 1 < questions.length){
             insertCorrectAnswer(questions[questionIndex + 1].incorrect_answers, questions[questionIndex + 1].correct_answer)
             setQuestionIndex(questionIndex + 1)
@@ -57,6 +72,7 @@ function Quiz() {
         <div>
             {loaded &&
                 <div>
+                    <p className="score" style={{color: lastAnswer}}>Score: {score}</p>
                     <p className="question">{questions[questionIndex].question}</p>
                     {questions[questionIndex].incorrect_answers.map( (answer) => {
                         return <button key={answer} onClick={(event) => handleParsed(event, answer)}>{answer}</button>
